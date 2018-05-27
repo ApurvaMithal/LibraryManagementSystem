@@ -1,0 +1,100 @@
+package library;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import library.DbConnection;
+
+public class CheckOut {
+
+		public CheckOut() {
+			
+		}
+		/*public static void main(String args[]){
+			JSONArray bookList = new JSONArray();
+			try {
+				bookList = getAllBooks("aa");
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}*/
+		public static JSONArray checkOut(String card, String isbn) throws JSONException {
+			DbConnection dbObj = new DbConnection();
+			Connection conn = null;
+			conn = dbObj.getDBConnection();
+			int cardId = Integer.parseInt(card);
+			int flag_maxLimit = 1;
+			int flag_avail = 1;
+			JSONArray arr = new JSONArray();
+			JSONObject obj = new JSONObject();
+			String db = "use library_system;";
+			try {
+				String sql = "select count(*) cnt from book_loans where card_id = "+cardId+" and date_out is not null and date_in is null;";				
+			
+				PreparedStatement ps = conn.prepareStatement(sql);
+				
+				ps.execute(db);
+				ResultSet rs = ps.executeQuery();
+				if(rs.next()){
+					int cnt = rs.getInt("cnt");
+					if(cnt>2)
+						flag_maxLimit = 0;
+				}
+				
+					PreparedStatement ps2 = null;
+					ResultSet rs2 = null;
+					ps2 = conn.prepareStatement("select date_out, date_in, curdate() curr from book_loans where isbn like '%"+ isbn +"%' order by date_out desc limit 1;");
+					 rs2 = ps2.executeQuery();
+					 if(rs2.next()){
+						// System.out.println("inside ");
+						 if(!(rs2.getDate("date_out")==null)){
+							 if(!(rs2.getDate("date_in")==null) && (rs2.getDate("date_in").compareTo( rs2.getDate("curr"))<0)){
+								 flag_avail = 1;
+							 }
+							 else if(rs2.getDate("date_in")==null)
+								 flag_avail = 0;
+						}
+					 }
+					 else{
+						 flag_avail = 1;
+					 }
+					
+				PreparedStatement ps3 = null;
+				
+				if((flag_avail ==1) && (flag_maxLimit==1)){
+					ps3 = conn.prepareStatement("insert into book_loans (isbn, card_id, date_out, due_date) values ('"+isbn+"', "+cardId+", curdate(), DATE_ADD(date_out, interval 14 day))");
+					ps3.execute();
+					System.out.println("inside if");
+				}
+				obj.put("flag_maxLimit",flag_maxLimit);
+				obj.put("flag_avail", flag_avail);
+				arr.put(obj);
+				
+				if(rs!=null)
+					rs.close();
+				if(conn!=null)
+					conn.close();
+				if(rs2!=null)
+					rs2.close();
+				return arr;
+			}
+			catch (SQLException e) {
+			e.printStackTrace();
+			}
+			return arr;
+			
+		}
+	}
+

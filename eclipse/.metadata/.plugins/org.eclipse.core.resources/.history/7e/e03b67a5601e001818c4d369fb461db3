@@ -1,0 +1,43 @@
+package library;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class FinePayment {
+
+	public static JSONArray pay(String cardId, String isbn) {
+		// TODO Auto-generated method stub
+		DbConnection dbObj = new DbConnection();
+		Connection conn = null;
+		conn = dbObj.getDBConnection();
+		
+		JSONArray fines = new JSONArray();
+		JSONObject fine = null;
+		int flag = 1;
+		
+		try {
+			
+				
+				String sql = "select tab.*, fines.fine_amt, fines.paid from (select * from book_loans where (date_in is null and due_date < curdate()) or (date_in is not null and due_date < date_in)) tab left outer join fines on fines.loan_id = tab.loan_id where tab.card_id = "+Integer.parseInt(cardId)+ " and tab.isbn = '"+isbn+"' order by tab.date_out limit 1;";
+				System.out.println("sql1 "+sql);
+				
+				ResultSet rs = null;
+				PreparedStatement ps = conn.prepareStatement(sql);
+				
+				ps.execute("USE library;");
+				rs = ps.executeQuery();
+				
+				
+	}
+		catch(SQLException e){
+			e.printStackTrace();
+		}
+		return fines;
+		
+	}
+}

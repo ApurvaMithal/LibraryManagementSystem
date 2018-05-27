@@ -1,0 +1,76 @@
+package library;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class FineUpdate {
+
+	public static JSONArray update() {
+		// TODO Auto-generated method stub
+		DbConnection dbObj = new DbConnection();
+		Connection conn = null;
+		conn = dbObj.getDBConnection();
+		
+		JSONArray fines = new JSONArray();
+		
+		int flag = 1;
+		
+		try {
+			
+				String sql = "select * from book_loans where (date_in is null and due_date < sysdate) or (date_in is not null and due_date < date_in); ";
+				System.out.println(sql);
+				
+				ResultSet rs = null;
+				PreparedStatement ps = conn.prepareStatement(sql);
+				
+				ps.execute("USE library;");
+				rs = ps.executeQuery();
+				
+				JSONObject fine = null;
+				ResultSet rs2 = null;
+				PreparedStatement ps2 = null;
+				PreparedStatement ps3 = null;
+				double fine_amt = 0;
+				while(rs.next()) {
+					ps2 = conn.prepareStatement("select count(*) cnt, paid from fines where loan_id = "+ rs.getInt("loan_id")+";");
+					rs2 = ps2.executeQuery();
+					rs2.next();
+					if (rs2.getInt("cnt") == 0){
+						ps3 = conn.prepareStatement("insert into fines values ("+ rs.getInt("loan_id")+", fine_amt, paid);");
+						ps3.execute();
+					}else{
+						if(rs2.getString("paid") == "0"){
+							if (rs.getDate("date_in") == null && rs.getDate("due_date") < sysdate)
+								fine_amt = (currdate() - rs.getDate("due_date") )* 0.25
+							else if(rs.getDate("date_in") != null && rs.getDate("due_date") < date_in)
+								fine_amt = (rs.getDate("date_in") - rs.getDate("due_date"))* 0.25
+							ps3 = conn.prepareStatement("update fines set fine_amt = "+fine_amt+"  where loan_id = ("+ rs.getInt("loan_id")+", fine_amt, paid);");
+							ps3.execute();
+						}
+					}
+					
+				}
+				fine.put("flag", 1);
+				rs.close();
+				rs2.close();
+				ps.close();
+				ps2.close();
+				ps3.close();
+				conn.close();
+				
+				return fines;
+			}
+		
+		catch (SQLException e) {
+		e.printStackTrace();
+		}
+		return book_loans;
+		return null;
+	}
+
+}

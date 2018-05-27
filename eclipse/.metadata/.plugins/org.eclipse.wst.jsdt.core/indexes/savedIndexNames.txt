@@ -1,0 +1,6 @@
+INDEX VERSION 1.121+D:\MS_STUDY_MATERIAL\SPRING_2018\DB\sql\PAS1\eclipse\.metadata\.plugins\org.eclipse.wst.jsdt.core\indexes
+3533633380.index
+180062237.index
+4207606346.index
+2961647857.index
+259697199.index

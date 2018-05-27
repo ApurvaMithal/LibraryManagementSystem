@@ -1,0 +1,56 @@
+package library;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+public class FinePaymentPay {
+
+	public static JSONArray pay(String loan_id) throws JSONException {
+		// TODO Auto-generated method stub
+		DbConnection dbObj = new DbConnection();
+		Connection conn = null;
+		conn = dbObj.getDBConnection();
+		
+		JSONArray fines = new JSONArray();
+		JSONObject fine = null;
+		int flag = 1;
+		
+		try {
+			
+				String sql = "select book_loans.*, fines.fine_amt, fines.paid from book_loans, fines where book_loans.loan_id = fines.loan_id and book_loans.loan_id = "+loan_id+";";
+			
+				ResultSet rs = null;
+				PreparedStatement ps = conn.prepareStatement(sql);
+				
+				ps.execute("USE library;");
+				rs = ps.executeQuery();
+				while(rs.next()){
+					if (rs.getDate("date_in") == null){
+						flag = 0;
+					}
+					else{
+						PreparedStatement ps2 = conn.prepareStatement("update fines set paid = 1 where loan_id = "+loan_id+";");
+						ps2.execute("USE library");
+						ps2.execute();
+					}
+					fine = new JSONObject();
+					fine.put("flag", flag);
+					fines.put(fine);
+				}
+				return fines;
+				
+				
+	}
+		catch(SQLException e){
+			e.printStackTrace();
+		}
+		return fines;
+	}
+
+}

@@ -1,0 +1,81 @@
+package library;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+
+public class FineUpdate {
+
+	public static JSONArray update() throws JSONException {
+		// TODO Auto-generated method stub
+		DbConnection dbObj = new DbConnection();
+		Connection conn = null;
+		conn = dbObj.getDBConnection();
+		
+		JSONArray fines = new JSONArray();
+		JSONObject fine = null;
+		int flag = 1;
+		
+		try {
+			
+				String sql = "select book_loans.*, curdate() cur from book_loans where (date_in is null and due_date < curdate()) or (date_in is not null and due_date < date_in); ";
+				System.out.println("sql1 "+sql);
+				
+				ResultSet rs = null;
+				PreparedStatement ps = conn.prepareStatement(sql);
+				
+				ps.execute("USE library;");
+				rs = ps.executeQuery();
+				
+				ResultSet rs2 = null;
+				PreparedStatement ps2 = null;
+				PreparedStatement ps3 = null;
+				double fine_amt = 0;
+				while(rs.next()) {
+					ps2 = conn.prepareStatement("select count(*) cnt, paid from fines where loan_id = "+ rs.getInt("loan_id")+";");
+					rs2 = ps2.executeQuery();
+					rs2.next();
+					if(rs2.getInt("cnt")>0){
+						
+						if(rs2.getString("paid") == "0"){
+							if (rs.getDate("date_in") == null && (rs.getDate("due_date").compareTo(rs.getDate("cur"))<0))
+								fine_amt = ((int)((rs.getDate("cur").getTime() - rs.getDate("due_date").getTime())/(1000 * 60 * 60 * 24)))* 0.25;
+							else if(rs.getDate("date_in") != null && (rs.getDate("due_date").compareTo(rs.getDate("date_in"))<0))
+								fine_amt = ((int)((rs.getDate("date_in").getTime() - rs.getDate("due_date").getTime())/(1000 * 60 * 60 * 24)))* 0.25;
+							System.out.println("fine_amt "+fine_amt);
+							ps3 = conn.prepareStatement("update fines set fine_amt = "+fine_amt+"  where loan_id = ("+ rs.getInt("loan_id")+" ,"+fine_amt +" ,"+ 0+");");
+							ps3.execute();
+						}
+					}
+					else{
+						ps3 = conn.prepareStatement("insert into fines values ("+ rs.getInt("loan_id")+" ,"+fine_amt +" ,"+ 0+");");
+						ps3.execute();
+					}
+					
+				}
+				fine = new JSONObject();
+				fine.put("flag", 1);
+				fines.put(fine);
+				rs.close();
+				rs2.close();
+				conn.close();
+				
+				return fines;
+			}
+		
+		catch (SQLException e) {
+		flag = 0;
+		fine.put("flag", 0);
+		fines.put(fine);
+		e.printStackTrace();
+		}
+		return fines;
+	}
+
+}

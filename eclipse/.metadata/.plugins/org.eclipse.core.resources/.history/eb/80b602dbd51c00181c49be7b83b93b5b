@@ -1,0 +1,12 @@
+package library;
+
+import org.json.JSONArray;
+
+public class FinePayment {
+
+	public static JSONArray pay() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

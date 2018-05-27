@@ -1,0 +1,166 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+	pageEncoding="ISO-8859-1"%>
+    <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+    <html>
+
+    <head>
+        <title>Fine Processing</title>
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link href='http://fonts.googleapis.com/css?family=Oxygen' rel='stylesheet' type='text/css'>
+        <script src="js/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+		
+	<%--	<style>
+            table {
+                border: 1px solid #666;
+                width: 100%;
+            }
+
+            th {
+                background: #f8f8f8;
+                font-weight: bold;
+                padding: 2px;
+            }
+        </style>
+         --%>
+        <script>
+            jQuery(window).ready(function() {
+
+                $("#checkOutButton").click(function(event) {
+                    
+                    var cardID = $('#cardId').val();
+                    var isbn = $('#isbn').val();
+                    jQuery.ajax({
+                        url: "CheckOutServlet",
+                        type: "get",
+                        dataType: "json",
+                        data: {
+                            term1: cardID,
+                            term2: isbn
+                        },
+                        success: function(data) {
+                            // since we are using jQuery, you don't need to parse response
+                            if(data[0].flag_maxLimit == 0 ){
+                                alert("Error: Each BORROWER is permitted a maximum of 3 BOOK LOANS\n");
+                            }
+                            if(data[0].flag_avail == 0 ){
+                                alert("Error: Book is currently not available\n");
+                            }
+                            if(data[0].flag_maxLimit == 1 && data[0].flag_avail == 1){
+                                alert("Successful checkout");
+                            }
+
+                          //  drawTable(data);
+                        }
+                    });
+
+                });
+            });
+        </script>
+        
+        <%--       <script>
+            jQuery(window).ready(function() {
+
+                $("#checkInButton").click(function(event) {
+                    
+                    var cardID = $('#cardIdCI').val();
+                    var isbn = $('#isbnCI').val();
+                    var name = $('#nameCI').val();
+                    jQuery.ajax({
+                        url: "CheckInServlet",
+                        type: "get",
+                        dataType: "json",
+                        data: {
+                            cardId: cardID,
+                            isbn: isbn,
+                            name: name
+                            
+                        },
+                        success: function(data) {
+                            // since we are using jQuery, you don't need to parse response
+                                alert("Successful checkIn");
+                       
+                            drawTable(data);
+                        }
+                    });
+
+                });
+
+                function drawTable(data) {
+                	  $("#bookLoans").find("tr:not(:first)").remove();
+                    for (var i = 0; i < data.length; i++) {
+                        drawRow(data[i]);
+                    }
+                }
+
+                function drawRow(rowData) {
+                    var row = $("<tr />");
+                    $("#bookLoans").append(row); //this will append tr element to table... keep its reference for a while since we will add cels into it
+                    row.append($("<td>" + rowData.loan_id + "</td>"));
+                    row.append($("<td>" + rowData.isbn + "</td>"));
+                    row.append($("<td>" + rowData.card_id + "</td>"));
+                    row.append($("<td>" + rowData.date_out + "</td>"));
+                    row.append($("<td>" + rowData.due_date + "</td>"));
+                    
+                }
+            });
+        </script>
+        --%>  
+        
+    </head>
+
+    <body>
+
+        <div class="container">
+            <h2>
+                <font color="red">Fine Processing</font>
+            </h2>
+            <div class="fineUpdate">
+                <label for="fineUpdate"><h3>Update fine details</h3></label></br></br>
+             </div>
+			</br>
+            <button type="Submit" class="btn btn-default" id="fineUpdateBtn">Update Fine</button>
+			</br></br>
+		
+			<div class="finePayment">
+                <label for="finePayment"><h3>Pay Fine</h3></label></br></br>
+                Card Id:    <input type="text" id="cardId" placeholder="Card Id.." name="cardId"></br></br>
+                Book Isbn:  <input type="text" id="isbn" placeholder="Book Isbn.." name="bookIsbn"></br>
+            
+            </div>
+			</br>
+            <button type="Submit" class="btn btn-default" id="fineUpdateBtn">Update Fine</button>
+		
+		
+		
+       <%--     <h2>
+                <font color="red">Checking In of the Book</font>
+            </h2>
+            <div class="checkIn">
+                <label for="checkIn"><h3>Enter details for Book CheckIn</h3></label></br></br>
+                Card Id:    <input type="text" id="cardIdCI" placeholder="Card Id.." name="cardId"></br></br>
+                Book Isbn:  <input type="text" id="isbnCI" placeholder="Book Isbn.." name="bookIsbn"></br></br>
+                Name:  <input type="text" id="nameCI" placeholder="Book Isbn.." name="bookIsbn"></br>
+            </div>
+			</br>
+            <button type="submit" class="btn btn-default" id="checkInButton">Check In</button> </br></br>
+            
+            <table id="bookLoans">
+            <tr>
+                <th>Loan_id</th>
+                <th>Isbn</th>
+                <th>Card_id</th>
+                <th>Date_Out</th>
+                <th>Date_due</th>
+            </tr>
+
+         </table>
+		
+		--%> 
+        </div>
+      
+
+    </body>
+
+    </html>

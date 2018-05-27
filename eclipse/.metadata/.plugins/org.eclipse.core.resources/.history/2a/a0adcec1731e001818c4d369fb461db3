@@ -1,0 +1,62 @@
+package library;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class FinePaymentPay {
+
+	public static JSONArray pay(String loan_id) {
+		// TODO Auto-generated method stub
+		DbConnection dbObj = new DbConnection();
+		Connection conn = null;
+		conn = dbObj.getDBConnection();
+		
+		JSONArray fines = new JSONArray();
+		JSONObject fine = null;
+		int flag = 1;
+		
+		try {
+			
+				String sql = "select book_loans.*, fines.fine_amt, fines.paid from book_loans, fines where book_loans.loan_id = fines.loan_id and book_loans.loan_id = "+loan_id+";";
+			
+				ResultSet rs = null;
+				PreparedStatement ps = conn.prepareStatement(sql);
+				
+				ps.execute("USE library;");
+				rs = ps.executeQuery();
+				while(rs.next()){
+					if (rs.getDate("date_in") == null){
+						flag = 0;
+					}
+					else{
+						PreparedStatement ps2 = conn.prepareStatement("update fines set paid = 1 where loan_id = "+loan_id+";");
+						ps2.execute("USE library;");
+					}
+					fine = new JSONObject();
+					fine.put("loan_id", rs.getInt("loan_id"));
+					fine.put("isbn", rs.getString("isbn"));
+					fine.put("card_id", rs.getInt("card_id"));
+					fine.put("date_out", rs.getDate("date_out"));
+					fine.put("due_date", rs.getDate("due_date"));
+					fine.put("date_in", rs.getDate("date_in"));
+					fine.put("fine_amt", rs.getDouble("fine_amt"));
+					fine.put("paid", rs.getInt("paid"));
+					fines.put(fine);
+				}
+				return fines;
+				
+				
+	}
+		catch(SQLException e){
+			e.printStackTrace();
+		}
+		return fines;
+		return null;
+	}
+
+}
